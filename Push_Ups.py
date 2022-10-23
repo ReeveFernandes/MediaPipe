@@ -4,35 +4,26 @@ import cv2  # imports opencv into the program
 import mediapipe  # imports mediapipe into program
 import numpy  # for trigonometry
 
-
+#three points for angles
 def calculate_angle(a, b, c):
-    a = numpy.array(a)  # First
-    b = numpy.array(b)  # Mid
-    c = numpy.array(c)  # End
-    radians = numpy.arctan2(c[1] - b[1], c[0] - b[0]) - numpy.arctan2(a[1] - b[1], a[0] - b[0])
-    angle = numpy.abs(radians * 180.0 / numpy.pi)
-    if angle>180.0:
+    a = numpy.array(a)  # First point
+    b = numpy.array(b)  # Mid point
+    c = numpy.array(c)  # End point
+    radians = numpy.arctan2(c[1] - b[1], c[0] - b[0]) - numpy.arctan2(a[1] - b[1], a[0] - b[0]) #to find mid angle in radians
+    angle = numpy.abs(radians * 180.0 / numpy.pi) #converting radians to degrees
+    if angle>180.0: #in order to always have angle within 180, if greater than 180 then subtract from 360
         angle = 360 - angle
     return angle
-
-
-
-
-
 
 mediapipe_drawing = mediapipe.solutions.drawing_utils  # for drawing utilities
 mediapipe_pose = mediapipe.solutions.pose  # import pose estimation model
 
-
-
-
 # VIDEO FEED
 cap = cv2.VideoCapture(0)  # setting video capture device (laptop camera), number 0 represents mac cam
 
-#Curl counter
+#Push ups counter
 count=0
 stage=None
-
 
 with mediapipe_pose.Pose(min_detection_confidence=0.5,
                          min_tracking_confidence=0.5) as pose:  # Set up mediapipe instance,detetction confidence is 50% and tracking confidence is 50%
@@ -53,19 +44,19 @@ with mediapipe_pose.Pose(min_detection_confidence=0.5,
 
 
             # Used to get coordinates of the left- shoulder, elbow and wrist
-            left_shoulder = [landmarks[mediapipe_pose.PoseLandmark.LEFT_SHOULDER.value].x,
+            left_shoulder = [landmarks[mediapipe_pose.PoseLandmark.LEFT_SHOULDER.value].x, #will be used for break statement
                         landmarks[mediapipe_pose.PoseLandmark.LEFT_SHOULDER.value].y]
             left_elbow = [landmarks[mediapipe_pose.PoseLandmark.LEFT_ELBOW.value].x,
                      landmarks[mediapipe_pose.PoseLandmark.LEFT_ELBOW.value].y]
-            left_wrist = [landmarks[mediapipe_pose.PoseLandmark.LEFT_WRIST.value].x,
+            left_wrist = [landmarks[mediapipe_pose.PoseLandmark.LEFT_WRIST.value].x, #will be used for break statement
                      landmarks[mediapipe_pose.PoseLandmark.LEFT_WRIST.value].y]
 
             # Used to get coordinates of the right- shoulder, elbow and wrist
-            right_shoulder = [landmarks[mediapipe_pose.PoseLandmark.RIGHT_SHOULDER.value].x,
+            right_shoulder = [landmarks[mediapipe_pose.PoseLandmark.RIGHT_SHOULDER.value].x, #will be used for break statement
                              landmarks[mediapipe_pose.PoseLandmark.RIGHT_SHOULDER.value].y]
             right_elbow = [landmarks[mediapipe_pose.PoseLandmark.RIGHT_ELBOW.value].x,
                              landmarks[mediapipe_pose.PoseLandmark.RIGHT_ELBOW.value].y]
-            right_wrist = [landmarks[mediapipe_pose.PoseLandmark.RIGHT_WRIST.value].x,
+            right_wrist = [landmarks[mediapipe_pose.PoseLandmark.RIGHT_WRIST.value].x, #will be used for break statement
                           landmarks[mediapipe_pose.PoseLandmark.RIGHT_WRIST.value].y]
 
 
@@ -76,34 +67,17 @@ with mediapipe_pose.Pose(min_detection_confidence=0.5,
             left_angle = calculate_angle(right_shoulder,right_elbow,right_wrist)
             right_shoulder_angle=calculate_angle(left_shoulder,right_shoulder,right_elbow)
             left_shoulder_angle=calculate_angle(right_shoulder,left_shoulder,left_elbow)
+            break_left_angle = calculate_angle(left_wrist, right_shoulder, right_wrist)
+            break_right_angle = calculate_angle(right_wrist, left_shoulder, left_wrist)
 
             #Push up counting logic
-            if right_angle>right_shoulder_angle and left_angle>left_shoulder_angle:
+            if right_angle>right_shoulder_angle and left_angle>left_shoulder_angle: #In the first position of push up, the elbow angle is greater than the shoulder angle
                 stage="up"
-            elif right_angle<right_shoulder_angle and left_angle<left_shoulder_angle and stage=="up":
+            elif right_angle<right_shoulder_angle and left_angle<left_shoulder_angle and stage=="up": #In the second position of push up, the shoulder angle is greater than the elbow angle
                 stage="down"
-                count+=1
-                print(count)
-            print(stage)
-
-
-
-
-
-
-
-            # Curl counting logic
-            #if left_angle > 160 and right_angle>160:
-            #    stage = "down"
-            #elif left_angle < 50 and right_angle<50 and stage == "down":
-            #    stage = "up"
-            #    count += 1
-            #    print(count)
-          #  print(stage)
-          #  print(angle)
-
-
-
+                count+=1 #reps are incremented by 1
+                print(count) #reps are printed
+            print(stage) #up or down mode is printed
 
 
 
@@ -132,7 +106,7 @@ with mediapipe_pose.Pose(min_detection_confidence=0.5,
 
         cv2.imshow('Mediapipe Feed', image)  # visualisation of image via pop up, frame is called mediapipe feed
 
-        if cv2.waitKey(10) & 0xFF == ord('q'):  # I wrote and instead of & (checking if we try to close our screen with q)
+        if cv2.waitKey(10) & ( break_left_angle > 160 and break_right_angle > 160):  #keeping wrists alongside shoulders in straight link closes the window
             break
 
     cap.release()  # releases web cam
