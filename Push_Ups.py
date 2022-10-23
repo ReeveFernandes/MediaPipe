@@ -15,6 +15,9 @@ def calculate_angle(a, b, c):
         angle = 360 - angle
     return angle
 
+break_left_angle=0.0
+break_right_angle=0.0
+
 mediapipe_drawing = mediapipe.solutions.drawing_utils  # for drawing utilities
 mediapipe_pose = mediapipe.solutions.pose  # import pose estimation model
 
