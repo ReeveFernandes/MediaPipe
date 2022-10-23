@@ -62,12 +62,33 @@ with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as 
             right_ankle = [landmarks[mp_pose.PoseLandmark.RIGHT_ANKLE.value].x,
                           landmarks[mp_pose.PoseLandmark.RIGHT_ANKLE.value].y]
 
+            # We need torso-leg coordination
+
+            # Get coordinates for left shoulder-left leg
+            left_shoulder = [landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value].x,
+                             landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value].y]
+            left_hip = [landmarks[mp_pose.PoseLandmark.LEFT_HIP.value].x,
+                             landmarks[mp_pose.PoseLandmark.LEFT_HIP.value].y]
+            left_knee = [landmarks[mp_pose.PoseLandmark.LEFT_KNEE.value].x,
+                             landmarks[mp_pose.PoseLandmark.LEFT_KNEE.value].y]
+
+            # Get coordinates for right shoulder-right leg
+            right_shoulder = [landmarks[mp_pose.PoseLandmark.RIGHT_SHOULDER.value].x,
+                             landmarks[mp_pose.PoseLandmark.RIGHT_SHOULDER.value].y]
+            right_hip = [landmarks[mp_pose.PoseLandmark.RIGHT_HIP.value].x,
+                        landmarks[mp_pose.PoseLandmark.RIGHT_HIP.value].y]
+            right_knee = [landmarks[mp_pose.PoseLandmark.RIGHT_KNEE.value].x,
+                         landmarks[mp_pose.PoseLandmark.RIGHT_KNEE.value].y]
+
             
 
 
             # Calculate angle
             angle_left = calculate_angle(left_hip, left_knee, left_ankle)
             angle_right = calculate_angle(right_hip, right_knee, right_ankle)
+            angle_left_upper=calculate_angle(left_shoulder,left_hip,left_knee)
+            angle_right_upper=calculate_angle(right_shoulder,right_hip,right_knee)
+
 
             # Visualize angle left
             cv2.putText(image, str(angle_left),
@@ -77,14 +98,26 @@ with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as 
 
             # Visualize angle right
             cv2.putText(image, str(angle_right),
-                        tuple(np.multiply(left_knee, [640, 480]).astype(int)),
+                        tuple(np.multiply(right_knee, [640, 480]).astype(int)),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2, cv2.LINE_AA
+                        )
+
+            # Visualize angle left upper
+            cv2.putText(image, str(angle_left_upper),
+                        tuple(np.multiply(left_hip, [640, 480]).astype(int)),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2, cv2.LINE_AA
+                        )
+
+            # Visualize angle left upper
+            cv2.putText(image, str(angle_right_upper),
+                        tuple(np.multiply(right_hip, [640, 480]).astype(int)),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2, cv2.LINE_AA
                         )
 
             # Curl counter logic
-            if angle_left > 120 and angle_left > 120:
+            if (angle_left > 120 and angle_left > 120) and (angle_left_upper>160 and angle_right_upper>160):
                 stage = "up"
-            elif angle_left < 90 and angle_right < 90 and stage == "up":
+            elif (angle_left < 90 and angle_right < 90) and (angle_left_upper<100 and angle_right_upper<100) and stage == "up":
                 stage = "down"
                 counter += 1
                 print(counter)
