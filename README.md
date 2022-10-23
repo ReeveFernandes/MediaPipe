@@ -6,6 +6,6 @@ Code for Just Exercise, an exercise arcade ^_^ <br>
 <li>Pushups.py</li>
 <li>Curl.py</li>
 <li>Squats.py</li>
-<li>Lunges.pu</li>
+<li>Lunges.py</li>
 </ol>
 
